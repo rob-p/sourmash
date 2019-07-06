@@ -15,17 +15,14 @@ install: all
 dist: FORCE
 	$(PYTHON) setup.py sdist
 
-test: all
-	pip install -e '.[test]'
-	$(PYTHON) -m pytest
+test:
+	tox -e py37
 
 doc: .PHONY
-	cd doc && make html
+	tox -e docs
 
 coverage: all
-	$(PYTHON) setup.py clean --all
-	SOURMASH_COVERAGE=1 $(PYTHON) setup.py build_ext -i
-	$(PYTHON) -m pytest --cov=.
+	tox -e coverage
 
 benchmark: all
 	asv continuous master

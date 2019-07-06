@@ -69,9 +69,9 @@ SETUP_METADATA = \
                        'setuptools_scm', 'setuptools_scm_git_archive'],
     "use_scm_version": {"write_to": "sourmash/version.py"},
     "extras_require": {
-        'test' : ['pytest', 'pytest-cov', 'numpy', 'matplotlib', 'scipy','recommonmark'],
+        'test' : ['pytest', 'pytest-cov', 'numpy', 'matplotlib', 'scipy'],
         'demo' : ['jupyter', 'jupyter_client', 'ipython'],
-        'doc' : ['sphinx'],
+        'doc' : ['sphinx', 'recommonmark', "sphinxcontrib-napoleon", "nbsphinx"],
         '10x': ['pathos', 'bamnostic>=0.9.2'],
         },
     "include_package_data": True,
