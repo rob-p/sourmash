@@ -4,6 +4,7 @@
 //! Some indices also support containment searches.
 
 pub mod bigsi;
+pub mod lazo;
 pub mod linear;
 pub mod sbt;
 
