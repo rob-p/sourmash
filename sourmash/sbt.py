@@ -136,10 +136,27 @@ class SBT(Index):
         self.next_node = 0
         self.storage = storage
 
+    # TODO: make it into a cached_property, clean it if new node is inserted
     @property
     def _missing_nodes(self):
-        return {i for i in range(max(self._nodes))
-                if i not in self._nodes and i not in self._leaves}
+        all_nodes = set()
+        current_level = set()
+
+        for i in self._leaves:
+            parent = self.parent(i)
+            if parent is not None:
+                current_level.add(parent.pos)
+
+        while current_level:
+            previous_level = set()
+            for i in current_level:
+                parent = self.parent(i)
+                if parent is not None:
+                    previous_level.add(parent.pos)
+            all_nodes.update(current_level)
+            current_level = previous_level
+
+        return all_nodes - set(self._nodes)
 
     def signatures(self):
         for k in self.leaves():
@@ -190,7 +207,7 @@ class SBT(Index):
         "Add a new SourmashSignature in to the SBT."
         # TODO: Why does this not cause a circular import? I'd think this would be part of sbtmh - @olgabot
         from .sbtmh import SigLeaf
-        
+
         leaf = SigLeaf(signature.md5sum(), signature, name=signature.name())
         self.add_node(leaf)
 
@@ -881,8 +898,6 @@ class SBT(Index):
         tree = cls(factory, d=info['d'], storage=storage)
         tree._nodes = sbt_nodes
         tree._leaves = sbt_leaves
-        tree._missing_nodes = {i for i in range(max_node)
-                              if i not in sbt_nodes and i not in sbt_leaves}
 
         return tree
 

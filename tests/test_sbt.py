@@ -586,7 +586,7 @@ def test_tree_repair():
     tree_repair = SBT.load(utils.get_test_data('leaves.sbt.json'),
                            leaf_loader=SigLeaf.load)
 
-    tree_cur = SBT.load(utils.get_test_data('v3.sbt.json'),
+    tree_cur = SBT.load(utils.get_test_data('v6.sbt.json'),
                         leaf_loader=SigLeaf.load)
 
     testdata1 = utils.get_test_data(utils.SIG_FILES[0])
