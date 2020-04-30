@@ -520,12 +520,8 @@ class SearchMinHashesFindBest(object):
         self.best_match = 0.
 
     def search(self, node, sig, threshold, results=None):
-<<<<<<< HEAD
         """May return a list of matches under a node --> doesn't return a single sig"""
-        mins = sig.minhash.get_mins()
-=======
         sig_mh = sig.minhash
->>>>>>> ccfcb771328316716c49f175e3bcd814ef8a742e
         score = 0
 
         if isinstance(node, SigLeaf):
