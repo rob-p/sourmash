@@ -199,7 +199,7 @@ class LocalizedSBT(SBT):
             children = self.children(most_similar_parent.pos)
             if children[1].node is None:
                 # Use the default next node position
-                self.next_node = self._insert_next_position(self.next_node)
+                self.next_node = children[1].pos
             else:
                 self.next_node = self.maybe_displace_child(
                     new_leaf_similarity,
@@ -256,6 +256,20 @@ class LocalizedSBT(SBT):
         if exists_free_leaf:
             childs_new_position = self._insert_next_position(self.next_node)
             childs_new_parent = self.parent(childs_new_position)
+
+            #if not isinstance(childs_new_parent.node, Node):
+                # swap childs_new_parent with sibling and
+                # insert internal node in this position,
+                # move sibling to new internal node
+                #sibling = [c.pos for c in
+                #           self.children(self.parent(childs_new_parent.pos).pos) if
+                #           c.pos != childs_new_parent.pos][0]
+                #self._leaves[sibling], self._leaves[childs_new_parent.pos] = self._leaves[childs_new_parent.pos], self._leaves[sibling]
+                #self.insert_new_internal_node_with_children(other_child.node,
+                #                                            childs_new_parent.pos)
+                #del self._leaves[displaced_position]
+                #next_node = self.child(displaced_position, 1).pos
+                #return next_node
         # elif has_grandparent and exists_free_leaf:
         #     childs_new_parent = [x for x in self.children(grandparent.pos)
         #                              if x != most_similar_parent][0]
@@ -268,16 +282,17 @@ class LocalizedSBT(SBT):
                     displaced_position = pos
                     break
             childs_new_parent = self.parent(childs_new_position)
-        next_node = displaced_position
         self.insert_new_internal_node_with_children(other_child.node,
                                                     childs_new_parent.pos)
         del self._leaves[displaced_position]
+        next_node = displaced_position
         return next_node
 
     def check_exists_free_leaf(self):
         potential_next_position = self._insert_next_position(self.next_node)
         potential_next_position_parent = self.parent(potential_next_position)
-        if potential_next_position_parent.pos in self._nodes:
+        if (potential_next_position_parent.pos in self._nodes or
+            potential_next_position_parent.pos in self._leaves):
             exists_free_leaf = True
         else:
             exists_free_leaf = False
@@ -300,7 +315,7 @@ class LocalizedSBT(SBT):
             new_nodes[new_position] = node
 
         self._nodes = new_nodes
-        next_node = max(new_leaves) + 1
+        next_node = max(new_nodes) + 1
         return next_node
 
     def _rebuild_nodes_bottom_up(self, pos=None):
@@ -381,7 +396,8 @@ class LocalizedSBT(SBT):
         # 3) parent is a Node (no position available)
         #    - this is covered by case 1
         # 4) parent is None
-        #    this can happen with d != 2, in this case create the parent node
+        #    this can happen when the levels were pushed down
+        #    - add new node to next available position
         parent = self.parent(pos)
         if isinstance(parent.node, Leaf):
             # Create a new internal node
@@ -406,8 +422,8 @@ class LocalizedSBT(SBT):
         elif parent.node is None:
             new_internal_node = Node(self.factory, name="internal." + str(parent.pos))
             self._nodes[parent.pos] = new_internal_node
-            c1 = self.children(parent.pos)[0]
-            self._leaves[c1.pos] = node
+            assert pos not in self._leaves
+            self._leaves[pos] = node
             node.update(new_internal_node)
 
         # Rebuild all nodes, starting from the node previous to existing ones

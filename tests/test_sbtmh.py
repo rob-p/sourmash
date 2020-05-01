@@ -214,12 +214,12 @@ def test_localized_sbt_sorted_vs_randomized(random_seed):
         # --- Insert: G ---
         # Tree:
         #                           0
-        #               /                        \
-        #             1                           2
-        #        /        \                 /            \
-        #      3           4              5               6
-        #    /   \       /   \         /     \         /    \
-        # A: 7  B: 8   D: 9  C: 10   F: 11  G: 12    E: 13  None: 14
+        #               /                      \
+        #             1                         2
+        #        /        \                 /     \
+        #      3           4              5        E: 6
+        #    /   \       /   \         /     \
+        # A: 7  B: 8   D: 9  C: 10   F: 11  G: 12
 
         for signature in signatures:
             sbt.insert(signature)
