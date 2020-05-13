@@ -169,9 +169,7 @@ void kmerminhash_merge(SourmashKmerMinHash *ptr, const SourmashKmerMinHash *othe
 
 SourmashKmerMinHash *kmerminhash_new(uint32_t n,
                                      uint32_t k,
-                                     bool prot,
-                                     bool dayhoff,
-                                     bool hp,
+                                     HashFunctions hash_function,
                                      uint64_t seed,
                                      uint64_t mx,
                                      bool track_abundance);

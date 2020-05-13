@@ -18,24 +18,12 @@ impl ForeignObject for SourmashKmerMinHash {
 pub unsafe extern "C" fn kmerminhash_new(
     n: u32,
     k: u32,
-    prot: bool,
-    dayhoff: bool,
-    hp: bool,
+    hash_function: HashFunctions,
     seed: u64,
     mx: u64,
     track_abundance: bool,
 ) -> *mut SourmashKmerMinHash {
     // TODO: at most one of (prot, dayhoff, hp) should be true
-
-    let hash_function = if dayhoff {
-        HashFunctions::murmur64_dayhoff
-    } else if hp {
-        HashFunctions::murmur64_hp
-    } else if prot {
-        HashFunctions::murmur64_protein
-    } else {
-        HashFunctions::murmur64_DNA
-    };
 
     let mh = KmerMinHash::new(n, k, hash_function, seed, mx, track_abundance);
 

@@ -7,6 +7,7 @@ import copy
 from . import VERSION
 from ._compat import string_types, range_type
 from ._lowlevel import ffi, lib
+from .hash_functions import HashFunctions
 from .utils import RustObject, rustcall, decode_str
 from .exceptions import SourmashError
 from deprecation import deprecated
@@ -134,6 +135,18 @@ class MinHash(RustObject):
         Deprecated: @CTB
            * ``max_hash=<int>``; use ``scaled`` instead.
         """
+        _hash_function = None
+        if is_protein and hp:
+            _hash_function = HashFunctions.murmur64_hp
+        elif is_protein and dayhoff:
+            _hash_function = HashFunctions.murmur64_dayhoff
+        elif is_protein:
+            _hash_function = HashFunctions.murmur64_protein
+        elif not is_protein and not dayhoff and not hp:
+            _hash_function = HashFunctions.murmur64_DNA
+        else:
+            raise ValueError('invalid hash_function')
+
         if max_hash and scaled:
             raise ValueError("cannot set both max_hash and scaled")
         elif scaled:
@@ -145,11 +158,8 @@ class MinHash(RustObject):
         if not n and not (max_hash or scaled):
             raise ValueError("cannot omit both n and scaled")
 
-        if dayhoff or hp:
-            is_protein = False
-
         self._objptr = lib.kmerminhash_new(
-            n, ksize, is_protein, dayhoff, hp, seed, int(max_hash), track_abundance
+            n, ksize, _hash_function.value, seed, int(max_hash), track_abundance
         )
 
         if mins:
@@ -178,9 +188,7 @@ class MinHash(RustObject):
         return (
             self.num,
             self.ksize,
-            self.is_protein,
-            self.dayhoff,
-            self.hp,
+            self.hash_function,
             self.get_mins(with_abundance=self.track_abundance),
             None,
             self.track_abundance,
@@ -190,12 +198,12 @@ class MinHash(RustObject):
 
     def __setstate__(self, tup):
         "support pickling via __getstate__/__setstate__"
-        (n, ksize, is_protein, dayhoff, hp, mins, _, track_abundance,
+        (n, ksize, hash_function, mins, _, track_abundance,
          max_hash, seed) = tup
 
         self.__del__()
         self._objptr = lib.kmerminhash_new(
-            n, ksize, is_protein, dayhoff, hp, seed, max_hash, track_abundance
+            n, ksize, hash_function.value, seed, max_hash, track_abundance
         )
         if track_abundance:
             self.set_abundances(mins)
@@ -358,6 +366,22 @@ class MinHash(RustObject):
             raise RuntimeError("Can only set track_abundance=True if the MinHash is empty")
         else:
             self._methodcall(lib.kmerminhash_enable_abundance)
+
+    @property
+    def hash_function(self):
+        enum_value = self._methodcall(lib.kmerminhash_hash_function)
+        return HashFunctions(enum_value)
+
+    @hash_function.setter
+    def hash_function(self, v):
+        # TODO: validate v
+        # TODO: allow passing a string too?
+        # TODO: same sort of validation as track_abundance:
+        #    - can only change on an empty minhash
+        if self.hash_function == v:
+            return
+
+        self._methodcall(lib.kmerminhash_hash_function_set, v.value)
 
     def add_hash(self, h):
         "Add a single hash value."
@@ -574,7 +598,7 @@ class MinHash(RustObject):
         """
         if molecule.lower() not in ('protein', 'dayhoff', 'hp', 'dna'):
             raise ValueError("unknown moltype in query, '{}'".format(molecule))
-        return molecule == self.moltype
+        return HashFunctions.from_string(molecule) == self.hash_function
 
     @property
     def moltype(self):                    # TODO: test in minhash tests
