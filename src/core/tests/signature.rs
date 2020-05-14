@@ -6,8 +6,7 @@ use std::path::PathBuf;
 use needletail::parse_sequence_reader;
 use sourmash::cmd::ComputeParameters;
 use sourmash::signature::Signature;
-use sourmash::signature::SigsTrait;
-use sourmash::sketch::Sketch;
+use sourmash::sketch::minhash::KmerMinHash;
 
 #[test]
 fn load_signature() {
@@ -29,11 +28,7 @@ fn load_signature() {
     assert_eq!(sig.size(), 4);
 
     let sketches = sig.sketches();
-    match sketches[0] {
-        Sketch::MinHash(_) => (),
-        Sketch::LargeMinHash(_) => panic!(),
-        Sketch::UKHS(_) => panic!(),
-    }
+    assert!(sketches[0].as_any().downcast_ref::<KmerMinHash>().is_some());
 }
 
 #[test]
@@ -59,11 +54,7 @@ fn load_signature_2() {
     assert_eq!(sig.size(), 1);
 
     let sketches = sig.sketches();
-    match sketches[0] {
-        Sketch::MinHash(_) => (),
-        Sketch::LargeMinHash(_) => panic!(),
-        Sketch::UKHS(_) => panic!(),
-    }
+    assert!(sketches[0].as_any().downcast_ref::<KmerMinHash>().is_some());
 }
 
 #[test]
