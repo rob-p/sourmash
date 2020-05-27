@@ -1,5 +1,6 @@
 from __future__ import division
 from collections import namedtuple
+import statistics
 import sys
 
 from .logging import notify, error
@@ -120,7 +121,6 @@ def gather_databases(query, databases, threshold_bp, ignore_abundance):
     # do we pay attention to abundances?
     orig_query_abunds = { k: 1 for k in orig_query_mins }
     if track_abundance:
-        import numpy as np
         orig_query_abunds = orig_query_mh.get_mins(with_abundance=True)
 
     cmp_scaled = query.minhash.scaled    # initialize with resolution of query
@@ -185,9 +185,9 @@ def gather_databases(query, databases, threshold_bp, ignore_abundance):
             intersect_abunds = (orig_query_abunds[k] for k in intersect_mins)
             intersect_abunds = list(intersect_abunds)
 
-            average_abund = np.mean(intersect_abunds)
-            median_abund = np.median(intersect_abunds)
-            std_abund = np.std(intersect_abunds)
+            average_abund = statistics.mean(intersect_abunds)
+            median_abund = statistics.median(intersect_abunds)
+            std_abund = statistics.stdev(intersect_abunds)
 
         # build a result namedtuple
         result = GatherResult(intersect_bp=intersect_bp,

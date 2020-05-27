@@ -1183,37 +1183,6 @@ class Leaf(object):
                    storage=storage)
 
 
-def filter_distance(filter_a, filter_b, n=1000):
-    """
-    Compute a heuristic distance per bit between two Bloom filters.
-
-    Parameters
-    ----------
-    filter_a : Nodegraph
-    filter_b : Nodegraph
-    n        : int
-        Number of positions to compare (in groups of 8)
-
-    Returns
-    -------
-    float
-        The distance between both filters (from 0.0 to 1.0)
-    """
-    from numpy import array
-
-    A = filter_a.graph.get_raw_tables()
-    B = filter_b.graph.get_raw_tables()
-    distance = 0
-    for q, p in zip(A, B):
-        a = array(q, copy=False)
-        b = array(p, copy=False)
-        for i in map(lambda x: randint(0, len(a)), range(n)):
-            distance += sum(map(int,
-                            [not bool((a[i] >> j) & 1) ^ bool((b[i] >> j) & 1)
-                             for j in range(8)]))
-    return distance / (8.0 * len(A) * n)
-
-
 def convert_cmd(name, backend):
     "Convert an SBT to use a different back end."
     from .sbtmh import SigLeaf
